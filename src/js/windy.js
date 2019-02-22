@@ -103,7 +103,8 @@ var Windy = function( params ){
 		var header = builder.header;
 
 		λ0 = header.lo1;
-		φ0 = header.la1;  // the grid's origin (e.g., 0.0E, 90.0N)
+		// 针对真气网数据进行的兼容性处理
+		φ0 = header.la1 > header.la2 ? header.la1 : header.la2;  // the grid's origin (e.g., 0.0E, 90.0N)
 
 		Δλ = header.dx;
 		Δφ = header.dy;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
@@ -120,17 +121,32 @@ var Windy = function( params ){
 		var p = 0;
 		var isContinuous = Math.floor(ni * Δλ) >= 360;
 
-		for (var j = 0; j < nj; j++) {
-			var row = [];
-			for (var i = 0; i < ni; i++, p++) {
-				row[i] = builder.data(p);
+		if (header.la1 > header.la2) {
+			for (var j = 0; j < nj; j++) {
+				var row = [];
+				for (var i = 0; i < ni; i++, p++) {
+					row[i] = builder.data(p);
+				}
+				if (isContinuous) {
+					// For wrapped grids, duplicate first column as last column to simplify interpolation logic
+					row.push(row[0]);
+				}
+				grid[j] = row;
 			}
-			if (isContinuous) {
-				// For wrapped grids, duplicate first column as last column to simplify interpolation logic
-				row.push(row[0]);
+		} else { // 针对真气网数据进行的特殊处理
+			for (var j = nj - 1; j >= 0; j--) {
+				var row = [];
+				for (var i = 0; i < ni; i++, p++) {
+					row[i] = builder.data(p);
+				}
+				if (isContinuous) {
+					// For wrapped grids, duplicate first column as last column to simplify interpolation logic
+					row.push(row[0]);
+				}
+				grid[j] = row;
 			}
-			grid[j] = row;
 		}
+		
 
 		callback({
 			date: date,
