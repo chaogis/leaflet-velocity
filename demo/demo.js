@@ -90,5 +90,21 @@ $.getJSON('wind-global.json', function (data) {
 	layerControl.addOverlay(velocityLayer, 'Wind - Global');
 });
 
+$.getJSON('http://agms.test.fpi-inc.site/wind-field-zhenqi-server/api/v1/wind-field-data/201902240400', function (data) {
+
+	var velocityLayer = L.velocityLayer({
+		displayValues: true,
+		displayOptions: {
+			velocityType: 'Global Wind',
+			displayPosition: 'bottomleft',
+			displayEmptyString: 'No wind data'
+		},
+		data: data,
+		maxVelocity: 10
+	});
+
+	layerControl.addOverlay(velocityLayer, 'Wind - China');
+});
+
 
 
